@@ -29,23 +29,27 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: "Missing 'text' parameter" });
   }
 
-  const curtime = Math.round(new Date().getTime() / 1000);
+  const curtime = Math.round(new Date().getTime() / 1000).toString();
   const salt = crypto.randomUUID();
   const sign = generateSign(text, salt, curtime);
 
-  const params = {
+  const params = new URLSearchParams({
     q: text,
     from: "auto",
     to: targetLanguage || "en",
     appKey: APP_KEY,
-    salt,
-    sign,
+    salt: salt,
+    sign: sign,
     signType: "v3",
-    curtime
-  };
+    curtime: curtime
+  });
 
   try {
-    const response = await axios.post(YOUDAO_API_URL, null, { params });
+    const response = await axios.post(YOUDAO_API_URL, params, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    });
     
     if (response.data.errorCode === "0") {
       res.status(200).json({ 
@@ -68,7 +72,8 @@ module.exports = async function handler(req, res) {
   } catch (error) {
     res.status(500).json({ 
       error: "Request to Youdao API failed", 
-      details: error.response?.data || error.message
+      details: error.response?.data || error.message,
+      params: Object.fromEntries(params)
     });
   }
 };
