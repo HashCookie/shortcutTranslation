@@ -5,5 +5,11 @@
         "src": "api/translate.js",
         "use": "@vercel/node"
       }
+    ],
+    "routes": [
+      {
+        "src": "/api/translate",
+        "dest": "/api/translate.js"
+      }
     ]
 }
